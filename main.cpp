@@ -3,7 +3,10 @@
 Purpose: Generates a trace by selecting random numbers from 4 random processes.
 
 I can probably improve this by using a distribution instead of rand to generate random numbers.
-Test out different distributions.
+Test out different distributions. 
+
+To run input: g++ -o trace main.cpp
+./trace (number of processes)
 
 Inputs: # of Processes, # of elements taken from each process, distribution: 1. random 2.sequential 3. mix, order of which elements are streamed in (interleaving pattern)
 Use text file to take in inputs
