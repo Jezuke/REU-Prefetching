@@ -1,94 +1,91 @@
 /* Michael Jezreel Aquitania
-1/25/2019
+2/15/2019
 Purpose: Generates a trace by selecting random numbers from 4 random processes.
 
 I can probably improve this by using a distribution instead of rand to generate random numbers.
-Test out different distributions. 
+Test out different distributions.
 
-To run input: g++ -o trace main.cpp
-./trace (number of processes)
-
-Inputs: # of Processes, # of elements taken from each process, distribution: 1. random 2.sequential 3. mix, order of which elements are streamed in (interleaving pattern)
+Inputs: 1.# of Processes,
+		2.range of each process,
+		3.# of elements taken from each process,
+		4.distribution: 1. random 2.sequential 3. mix,
+		5.	order of which elements are streamed in (interleaving pattern)
 Use text file to take in inputs
+
+IF FILE FORMAT CHANGES JUST MODIFY processes() and move around the array indices.
 
 */
 
 #include <iostream>
 #include <time.h>
 #include <vector>
+#include <fstream>
+#include <sstream>
+#include <string>
+
+#include "Trace.h"
 
 using namespace std;
 
-vector<vector<int> > processes(int numProcesses); //Generate processes with different amount of request
-vector<int> Merge(vector<vector<int> > generatedProcesses); //Create a trace request pulling "requests" from each process.
-
 int main(int argc, char *argv[])
 {
-   int row = atoi(argv[1]);
+    srand(time(0));
 
-    vector<vector<int> > processMatrix = processes(row); //Generate Processes
-    vector<int> requests = Merge(processMatrix); //Create a new request sequence using from all the processes
+    vector<vector<string> > argumentVector = arguments("input.txt");
+    int numberOfProcesses = argumentVector.size()-1; //Assuming input file is correctly formatted
+    int interleaveOption; //The first argument in text file
+    istringstream (argumentVector[0][0]) >> interleaveOption;
+    vector<vector<int> > processMatrix = processes(numberOfProcesses,argumentVector); //Generate Processes
+    vector<vector<int> > getElementsMatrix = generateElementsToInterLeave(processMatrix, argumentVector);
+    vector<int> trace = Merge(getElementsMatrix, interleaveOption);
 
-    cout<<endl;
-
-    for (int i = 0; i < row; i++)
+    //Comment out later
+    cout << "Printing textfile arguments:\n\n";
+    for(int i = 0; i<argumentVector.size(); i++)
     {
-        cout<<"Process " << (i+1) << ": ";
-        for (int j = 0; j < processMatrix[i].size(); j++)//Print values of each process
-            cout << processMatrix[i][j] << " ";
+        for(int j = 0; j<argumentVector[i].size();j++)
+        {
+            cout << argumentVector[i][j] << ", ";
+        }
         cout << endl;
     }
 
-    cout<<"\nGenerated Request Sequence:"<<endl;
-    for(int j = 0; j<requests.size(); j++) //Print new request sequence
+    cout<< "\n\nPrinting Processes:\n\n";
+    for(int i = 0; i<processMatrix.size(); i++)
     {
-        cout << requests[j] << " ";
+        for(int j = 0; j<processMatrix[i].size();j++)
+        {
+            cout << processMatrix[i][j] << ", ";
+        }
+        cout << endl;
+        cout << endl;
+        cout << endl;
     }
-    cout<<"\n\nTotal Number of Requests: " << requests.size();
+
+
+    cout<< "\nPrinting Elements to InterLeave:\n\n";
+    for(int i = 0; i<getElementsMatrix.size();i++)
+    {
+        for(int j = 0; j<getElementsMatrix[i].size(); j++)
+        {
+            cout<< getElementsMatrix[i][j]<< ", ";
+        }
+        cout << endl;
+    }
+
+    ofstream output("trace.txt", ios::out | ios::trunc);
+    output.seekp(ios::beg);
+
+    cout << "\nGenerated Trace:\n\n";
+    for(int i = 0; i<trace.size();i++)
+    {
+            cout<< trace[i]<< " ";
+            output<<trace[i]<<"\n";
+
+    }
     cout << endl;
+    output.close();
 
     return 0;
-}
-
-vector<vector <int> > processes(int numProcesses)
-{
-    vector<vector<int> > traceMatrix(numProcesses); //Create a 2D vector with 'numProcesses' amount of rows.
-
-    for(int i = 0; i<numProcesses; i++)
-    {
-        //Declare number of columns/items per row
-        int numOfItems;
-        cout << "How many items for Process "<<i+1<<"? ";
-        cin >> numOfItems;
-
-        traceMatrix[i] = vector<int>(numOfItems); //Number of items for the first process initialized
-
-        for(int j = 0; j<numOfItems; j++)
-        {
-            traceMatrix[i][j] =1+rand()%10; //Generate a random number (request) from 1-10
-        }
-    }
-
-    return traceMatrix;
-}
-
-
-vector<int> Merge(vector<vector<int> > generatedProcesses)
-{
-    vector<vector<int> > temp = generatedProcesses;
-    vector<int> generated;
-
-    //Get random values or structured values? from each process array and put in merged array.
-    while(!temp.empty())//While we still have elements from each process keep grabbing elements.
-    {
-        int i = rand()%temp.size(); //Choose a random process
-        int randomElementIndex = rand()%(temp[i].size()); //Choose a random request index from each process
-        generated.push_back(temp[i][randomElementIndex]); //Choose a random element from the process and insert into a new merged trace vector
-        temp[i].erase(temp[i].begin()+randomElementIndex);//Erase the element to denote that it's already been used
-        if(temp[i].size()==0)//If there are no more elements in a process to use, delete the process
-            temp.erase(temp.begin()+i);
-    }
-
-    return generated;
 }
 
