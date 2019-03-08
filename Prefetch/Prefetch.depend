@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1552021792 source:c:\users\jez\desktop\c programs\prefetch\main.cpp
+	<iostream>
+	<time.h>
+	<vector>
+	<fstream>
+	<sstream>
+	<string>
+	<bits/stdc++.h>
+
