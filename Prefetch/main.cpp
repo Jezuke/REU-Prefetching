@@ -6,7 +6,7 @@
 #include <string>
 #include <bits/stdc++.h>
 /* Orignal code from: https://www.geeksforgeeks.org/program-page-replacement-algorithms-set-1-lru/
-   Modifying look ahead fetch values and how I should determine these values
+   Modifying look ahead fetch values and how I should determine these values. Modified to act as a prefetcher as well.
 */
 
 using namespace std;
