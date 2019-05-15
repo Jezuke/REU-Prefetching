@@ -5,28 +5,27 @@
 #include <sstream>
 #include <string>
 #include <bits/stdc++.h>
+#include <algorithm>
+#include <iterator>
+#include <unordered_set>
 /* Orignal code from: https://www.geeksforgeeks.org/program-page-replacement-algorithms-set-1-lru/
-   Modifying look ahead fetch values and how I should determine these values. Modified to act as a prefetcher as well.
+   Modifying look ahead fetch values and how I should determine these values
 */
 
 using namespace std;
 
 int hits;
-vector <int> readInFile(string fileName);
-void printVector(vector <int> vectorName);
-void prefetch(vector <int> trace);
-int misses(vector <int> trace, int cap);
 
-
-int main(int argc, char *argv[])
+void printVector(vector <int> const &v)
 {
-    vector <int> trace = readInFile(argv[1]);
+    copy(v.begin(),v.end(),ostream_iterator<int>(cout, " "));
+    cout<<"\n"<<endl;
+}
 
-    int cap = 4;
-    cout << "Misses: " << misses(trace,cap) - cap<<endl;
-    cout << "Hits: " << hits;
-
-    return 0;
+void printSet(unordered_set<int> const &s)
+{
+    copy(s.begin(),s.end(),ostream_iterator<int>(cout, " "));
+    cout<<"\n"<<endl;
 }
 
 vector <int> readInFile(string fileName)
@@ -45,17 +44,23 @@ vector <int> readInFile(string fileName)
     {
         cerr << "Error! No file found\n";
     }
-
+    printVector(trace);
     return trace;
 }
 
-void printVector(vector <int> vectorName)
+
+vector <int> prefetch(int valueAtTraceRequest)
 {
-    for(int i = 0; i<vectorName.size();i++)
-    {
-        cout << vectorName[i] << endl;
-    }
+    vector <int> buffer;
+    buffer.push_back(valueAtTraceRequest+1);
+    buffer.push_back(valueAtTraceRequest+2);
+    buffer.push_back(valueAtTraceRequest+3);
+    buffer.push_back(valueAtTraceRequest+4);
+    buffer.push_back(valueAtTraceRequest+5);
+
+    return buffer;
 }
+
 
 int misses(vector <int> traces, int capacity)
 {
@@ -71,11 +76,28 @@ int misses(vector <int> traces, int capacity)
         {
             if(setT.find(traces[i])==setT.end())
             {
-                setT.insert(traces[i]+1);
+
+                for(int x = 0; x<capacity; x++)
+                {
+                    setT.insert(prefetch(traces[i])[x]);
+                }
                 misses++;
+               // cout<<"Current buffer: ";
+               // printVector(prefetch(traces[i]));
+
+
+                cout<<"Current setBuffer: ";
+                printSet(setT);
+
             }
             else{hits++;}
             indexes[traces[i]] = i;
+            //cout<<"Current buffer: ";
+            //printVector(prefetch(traces[i]));
+
+
+            cout<<"Current setBuffer: ";
+            printSet(setT);
         }
         else
         {
@@ -93,11 +115,37 @@ int misses(vector <int> traces, int capacity)
                 setT.erase(val);
                 setT.insert(traces[i]+1);
                 misses++;
+
+                //cout<<"Current buffer: ";
+                //printVector(prefetch(traces[i]));
+
+
+                cout<<"Current setBuffer: ";
+                printSet(setT);
             }
             else{hits++;}
             indexes[traces[i]] = i;
+            //cout<<"Current buffer: ";
+            //printVector(prefetch(traces[i]));
+
+
+            cout<<"Current setBuffer: ";
+            printSet(setT);
         }
 
     }
     return misses;
+}
+
+
+
+int main(int argc, char *argv[])
+{
+    vector <int> trace = readInFile(argv[1]);
+
+    int cap = 5; //buffer size
+    cout << "Misses: " << misses(trace,cap) - cap<<endl;
+    cout << "Hits: " << hits;
+
+    return 0;
 }
